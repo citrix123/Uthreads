@@ -1,0 +1,119 @@
+part 1 Questions:
+
+Question 1:
+
+ I have some questions about the detach and close problem. In the detach part, generally we do not care about the detached thread and let them run separately, but if we simply let the main(dummy) thread finish and return, other threads can not keep working. So we use the uthread_close() to keep enqueue the main thread until there's no other thread left in the queue, then free everything. Does this make sense?
+    Also, in the uthread_start() we encounter a problem that the stack of the current running thread can not be freed, which will generate a Segmentation fault. In order to deal with this, after the thread is FINISHED we enqueue it and free the stack with the thread when the main thread detach this thread or when the main thread is in the uthread_close step (in both case the main thread is in the self position). Is the method reasonable?
+    Many thanks for the help.
+
+
+Answer:
+
+Almost.  But, uthread_close() does not wait for threads to finish.  Your main thread will actually have to wait for the other threads by calling join or by using a semaphore.  Of course when you are testing detach, you don't want to join with that thread.  In this case you could have the main thread call yield to allow the other thread to run (after main calls detach and before to test both cases) and then have that thread run to completion.  When main runs again the other thread will have finished.
+ 
+Correct about uthead_start().
+ 
+Please consider making this question public.  You can do so and remain anonymous to the class.  I'd guess that other folks would benefit from this.
+--------------------------------------------------------------------------------------------------------------
+Question 2:
+
+I have some doubts in assignment. 
+1) After implementing yield I moved to join and calling uthread_switch that calls uthread_start then print data from print_and_yield.
+when  pingpong.c calls join thread first time. I am getting following output.
+inderp1@tuktoyaktuk:code$ ./ping_pong 4 4
+calling join time  0
+abcdabcdabcdabcd  finished  
+after that all threads are in ready state and I am changing state to finish and returning result from join when pingpong.c calls join second, third and fourth time.
+Is it expected behaviour or every time join should call print_and_yield to display data like this.
+calling join time  0
+abcd
+calling join time  1
+abcd
+
+Answer:
+
+That is the expected behaviour. Note that join will be blocked until the joined thread (which is probably the one that prints a) finishes. Once the joined thread finishes, the main thread is ready again, and added to the queue, but the queue itself has all other threads on it as well, so it will only run once every other thread finishes, for this specific example (ping pong).
+-------------------------------------------------------------------------------------------------------------------
+Question 3:
+Is the definition of sem_create correct?
+Hi,
+ 
+In the assignment pdf the definition for sem_create is 
+ 
+void sem_create  (&sem_t sem_p, int initial_value);
+ 
+I get an error for this definition, so I changed it to 
+ 
+void sem_create  (sem_t *sem_p, int initial_value);
+ 
+Is this ok?
+ 
+
+Answer:
+
+That is correct. The PDF assignment definition is based on C++ sintax, and is sort of equivalent to declaring the parameter as a pointer.
+ 
+-----------------------------------------------------------------------------------------------------------------
+
+
+Part 2
+
+Implement Blocking Semaphores [30%]
+------------------------------------
+
+The final part of the assignment is to extend your uthread implementation to implement blocking
+semaphores and a program that uses them.
+Implement User-Level Blocking Semaphores [15%]
+Your implementation should have the following public interface:
+
+struct sem;
+typedef struct sem* sem_tvoid sem_create (&sem_t sem_p, int initial_value);
+void sem_wait (sem_t sem);
+void sem_signal (sem_t sem);
+void sem_destroy (sem_t sem);
+
+Implement this interface so that sem_wait uses blocking waiting.
+
+Semaphores need the ability to block threads, add them to a queue, remove them from a queue, and
+restart them. This is low-level functionality that is not part of the uthread public interface. The easiest
+thing to do here is to just include the semaphore implementation in uthread.c since this gives you
+access to the implementation details not exposed in the interface uthread.h. Alternatively, you
+could extend the uthread.h interface to include the functionality you need to implement semaphores
+in a separate files, which is a bit more work, but the right thing to do from a software engineering
+perspective. You can choose either option; equal marks for either approach.
+
+If you decide to extend uthread.h you might want to add methods like this.
+
+struct uthread_queue;
+typedef struct uthread_queue* uthread_queue_t;
+void uthread_queue_create (uthread_queue_t* queue_p);
+void uthread_queue_destroy (uthread_queue_t);
+void uthread_block (uthread_queue_t queue);
+void uthread_unblock (uthread_queue_t queue);
+
+Where uthread_block() is similar to uthread_yield except that the calling thread is placed
+on the specified queue instead of the ready queue and it status is set to BLOCKED instead of READY;
+and where uthread_unlock() removes the thread at the top of the specified queue, changes its
+status to READY, and adds it to the ready queue.
+
+Place your implementation if files called sem.h and sem.c or in uthread.h and uthread.c
+Bounding Buffer [15%]
+
+Finally, use your implementation of uthreads and semaphores to solve Project 3 in Chapter 5.
+
+Note that the problem says that the thread should sleep periodically. Since you are implementing this
+with user-level threads using the many-to-one architecture, sleeping won’t work, because sleep is a
+blocking operation.
+
+Do not call sleep at all. The producer and consumer should repeatedly add / remove items without
+sleeping or yielding. Set a constant to limit the number of iterations each should perform. Be sure that
+the number of iterations you specify is much larger than BUFFER_SIZE; at least ten times as large.
+
+This constraint ensure that producer and consumer must synchronize with each other.
+
+The assignment also says that the producer should insert random numbers. It will be simpler and will
+aid debugging to have it insert its iteration number instead. Have the consumer print the values it
+removes from the buffer. If your program works, you should see the numbers 0, 1, …, N-1 print; where
+N is the number of iterations you have specified.
+
+You will need to update the Makefile to include uthread.o and sem.o in your program. Place your solution in a file called bounded_buffer.c. 

@@ -1,0 +1,12 @@
+CFLAGS += -std=gnu11 -g 
+EXES   =  bounded_buffer
+OBJS   =  bounded_buffer.o uthread.o
+
+all: $(EXES)
+
+bounded_buffer: bounded_buffer.o uthread.o
+
+clean:
+	rm -f $(EXES) $(OBJS)
+tidy:
+	rm -f $(OBJS)

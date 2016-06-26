@@ -1,0 +1,23 @@
+New thread initialized 
+Init started = 0x9442008
+New thread initialized 
+Thread Created = 0x9442108 
+New thread initialized 
+Thread Created = 0x94421c8 
+New thread initialized 
+Thread Created = 0x9442288 
+New thread initialized 
+Thread Created = 0x9442348 
+Thread 0x9442108 is in Join Now and Is not Finished, /nThread = 0x9442108 is in block 
+And my Joiner is 0x9442008 
+0x94421c8 is going to switch from unfinished Join 
+Thread 0x94421c8 is in Join Now and Is not Finished, /nThread = 0x94421c8 is in block 
+And my Joiner is 0x9442008 
+0x9442348 is going to switch from unfinished Join 
+Thread 0x9442288 is in Join Now and Is not Finished, /nThread = 0x9442288 is in block 
+And my Joiner is 0x9442008 
+(nil) is going to switch from unfinished Join 
+Thread 0x9442348 is in Join Now and Is not Finished, /nThread = 0x9442348 is in block 
+And my Joiner is 0x9442008 
+(nil) is going to switch from unfinished Join 
+
